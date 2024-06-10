@@ -22,6 +22,10 @@ func main(){
 		return c.JSON(user)
 	})
 
+	app.Post("/register", regiserUserHandler)
+	app.Post("/login", loginHandler)
+	
+
 	app.Get("/users", func(c *fiber.Ctx) error {
 		var users []User
 		db.Find(&users)
