@@ -1,13 +1,17 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 )
 
 func main(){
+	godotenv.Load(".env")
+
 
 	app := fiber.New()
 	db := initDatabase()
@@ -24,6 +28,25 @@ func main(){
 
 	app.Post("/register", regiserUserHandler)
 	app.Post("/login", loginHandler)
+
+	app.Get("/unprotected", func(c *fiber.Ctx) error {
+        // Retrieve the user from the context
+        user := c.Locals("user")
+
+        // Send a response including the user information
+        return c.SendString(fmt.Sprintf("Welcome %v!", user))
+    })
+	
+
+	app.Use(AuthMidleware)// Define a protected route
+    app.Get("/protected", func(c *fiber.Ctx) error {
+        // Retrieve the user from the context
+        user := c.Locals("user")
+
+        // Send a response including the user information
+        return c.SendString(fmt.Sprintf("Welcome %v!", user))
+    })
+
 	
 
 	app.Get("/users", func(c *fiber.Ctx) error {

@@ -1,9 +1,13 @@
 package main
 
 import (
+	"os"
+
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 )
+
 
 func HashPassword(password string) (string, error){
 	HashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -61,10 +65,48 @@ func loginHandler(c *fiber.Ctx) error{
 		return c.Status(400).SendString("password or email is incorrect");
 	 }
 
-	 c.Locals("email", user.Email)
-	 return c.JSON(user)
+	 token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id": user.ID,
+		"email": user.Email,
+		"role": user.Role,
+	})
 
+	jwtKey := []byte(os.Getenv("JWT_SECRET"))
+
+	signedToken, err := token.SignedString(jwtKey)
+	if err != nil{
+		return err 
+	}
+
+
+	 c.Locals("email", user.Email)
+	 return c.JSON(fiber.Map{
+        "token": signedToken,
+    })
 
 }
 
+
+func GenerateToken(user User) (string, error){
+	
+
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id": user.ID,
+		"email": user.Email,
+		"role": user.Role,
+	})
+
+	jwtKey := []byte(os.Getenv("JWT_SECRET"))
+
+	signedToken, err := token.SignedString(jwtKey)
+	if err != nil{
+		return "", err
+	}
+
+	return signedToken, nil
+
+
+	
+}
 
